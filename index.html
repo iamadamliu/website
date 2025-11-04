@@ -7,7 +7,9 @@
       body {
         background-color: #f0f0f0;
         background-image: url('https://aisearch.cdn.bcebos.com/homepage/jump_panel/photo_editing_min_v2/gexingrenxiang.jpg');
-        background-size: cover;
+      }
+      #jump_baidu {
+        display: none;
       }
     </style>
 </head>
@@ -26,34 +28,38 @@
         <br>
         <input type="submit" value="提交">
     </form>
+  
+    <p id="printMessage"></p>
 
-    <!-- 用于显示欢迎消息的区域 -->
-    <p id="welcomeMessage"></p>
-
+    <button id="jump_baidu" onclick="jump_baidu()"> 百度 </button>
     <script>
         function displayWelcomeMessage(event) {
             event.preventDefault(); // 阻止表单提交，防止页面刷新
 
             // 获取输入框的值
             var name = document.getElementById("name").value;
-            
+            var password = document.getElementById("password").value;
+            var message_welcome = "欢迎你，" + name;
+            var message_wrong_account = "账号错误";
+            var message_wrong_password = "密码错误";
+          
             // 如果没有输入名字，则给出提示
-            if (name.trim() === "") {
-                document.getElementById("welcomeMessage").textContent = "请输入你的账号！";
-                return;
+            if (name.trim() == "") {
+                document.getElementById("printMessage").textContent = "请输入你的账号！";
             }
-
-            // 显示欢迎消息
-            var message = "欢迎你，" + name;
-            document.getElementById("welcomeMessage").textContent = message;
+            else if (name == '啾阔落' && password == "123") {
+                document.getElementById("printMessage").textContent = message_welcome;
+                document.getElementById("jump_baidu").style.display = "inline-block";
+            }
+            else if (name == '啾阔落' && password != "123") {
+                document.getElementById("printMessage").textContent = message_wrong_password;
+            }
+            else if (name != '啾阔落') {
+                document.getElementById("printMessage").textContent = message_wrong_account;
+            }
         }
-    </script>
-  
-    <button onclick="openWebsite()">
-        点击打开网页
-    </button>
-    <script>
-        function openWebsite() {
+      
+        function jump_baidu() {
             window.open('https://www.baidu.com');
         }
     </script>
