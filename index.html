@@ -3,16 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <title>我的网页</title>
+    <style>
+      body {
+        background-color: #f0f0f0;
+        background-image: url('https://aisearch.cdn.bcebos.com/homepage/jump_panel/photo_editing_min_v2/gexingrenxiang.jpg');
+        background-size: cover;
+      }
+    </style>
 </head>
 <body>
-    <h3>欢迎来到可乐的个人网站，请输入账号密码</h3>
+    <h3>欢迎来到可乐的个人网站</h3>
+    <p>请输入账号密码</p>
 
     <form onsubmit="displayWelcomeMessage(event)">
         <label>账号：</label>
+<!--         <label for="name">账号：</label> -->
         <input type="text" id="name" name="name">
         <br>
         <label for="password">密码：</label>
         <input type="text" id="password" name="password">
+<!--         <input type="password" id="password" name="password"> -->
         <br>
         <input type="submit" value="提交">
     </form>
@@ -20,16 +30,7 @@
     <!-- 用于显示欢迎消息的区域 -->
     <p id="welcomeMessage"></p>
 
-    <h3>记事本</h3>
-
-    <!-- 按钮：新增记事本 -->
-    <button onclick="addNotebook()">新增记事本</button>
-
-    <!-- 显示所有记事本 -->
-    <div id="notebooksList"></div>
-
     <script>
-        // 显示欢迎消息
         function displayWelcomeMessage(event) {
             event.preventDefault(); // 阻止表单提交，防止页面刷新
 
@@ -46,46 +47,15 @@
             var message = "欢迎你，" + name;
             document.getElementById("welcomeMessage").textContent = message;
         }
-
-        // 新增记事本
-        function addNotebook() {
-            const notebooks = JSON.parse(localStorage.getItem('notebooks')) || [];
-            const newIndex = notebooks.length;
-            notebooks.push({ content: '' }); // 新增一个空白记事本
-            localStorage.setItem('notebooks', JSON.stringify(notebooks)); // 保存到本地存储
-
-            // 重新加载记事本
-            loadNotebooks();
-        }
-
-        // 加载记事本
-        function loadNotebooks() {
-            const notebooks = JSON.parse(localStorage.getItem('notebooks')) || [];
-            const notebooksList = document.getElementById("notebooksList");
-            notebooksList.innerHTML = ''; // 清空现有的显示
-
-            notebooks.forEach((notebook, index) => {
-                const notebookDiv = document.createElement('div');
-                notebookDiv.classList.add('notebook');
-                notebookDiv.innerHTML = `
-                    <h4>记事本 ${index + 1}</h4>
-                    <textarea id="notebook-${index}" rows="5" cols="50">${notebook.content}</textarea>
-                    <button onclick="saveNotebook(${index})">保存</button>
-                `;
-                notebooksList.appendChild(notebookDiv);
-            });
-        }
-
-        // 保存记事本内容
-        function saveNotebook(index) {
-            const notebooks = JSON.parse(localStorage.getItem('notebooks')) || [];
-            const updatedContent = document.getElementById(`notebook-${index}`).value;
-            notebooks[index].content = updatedContent;
-            localStorage.setItem('notebooks', JSON.stringify(notebooks)); // 保存到本地存储
-        }
-
-        // 页面加载时，加载记事本
-        window.onload = loadNotebooks;
     </script>
-</body>
+  
+    <button onclick="openWebsite()">
+        点击打开网页
+    </button>
+    <script>
+        function openWebsite() {
+            window.open('https://www.baidu.com');
+        }
+    </script>
+</p>
 </html>
