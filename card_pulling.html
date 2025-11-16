@@ -1,1 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>抽卡模拟器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+            padding: 50px;
+        }
+        .card {
+            width: 200px;
+            height: 300px;
+            margin: 10px;
+            border: 2px solid #ccc;
+            display: inline-block;
+            vertical-align: top;
+            padding: 20px;
+            background-color: white;
+        }
+        .result {
+            font-size: 20px;
+            margin-top: 20px;
+            color: #333;
+        }
+        #drawBtn {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
 
+    <h1>欢迎来到抽卡模拟器！</h1>
+    <div id="cards">
+        <div class="card" id="card1">卡片1</div>
+        <div class="card" id="card2">卡片2</div>
+        <div class="card" id="card3">卡片3</div>
+    </div>
+
+    <button id="drawBtn">抽卡</button>
+
+    <p class="result" id="result"></p>
+
+    <script>
+        const cards = ["SSR", "SR", "R", "UR", "N"];  // 抽卡的结果
+        const drawBtn = document.getElementById("drawBtn");
+        const resultText = document.getElementById("result");
+
+        // 抽卡按钮点击事件
+        drawBtn.onclick = function() {
+            let randomCard = cards[Math.floor(Math.random() * cards.length)];
+            document.getElementById("card1").innerText = randomCard;  // 将结果显示在卡片上
+
+            // 根据抽到的卡片类型显示不同的文字
+            if (randomCard === "SSR") {
+                resultText.innerText = "恭喜你，抽到了SSR卡！";
+                resultText.style.color = "gold";
+            } else if (randomCard === "SR") {
+                resultText.innerText = "抽到了SR卡！";
+                resultText.style.color = "silver";
+            } else if (randomCard === "R") {
+                resultText.innerText = "抽到了R卡！";
+                resultText.style.color = "green";
+            } else if (randomCard === "UR") {
+                resultText.innerText = "抽到了UR卡！";
+                resultText.style.color = "purple";
+            } else {
+                resultText.innerText = "抽到了N卡。";
+                resultText.style.color = "gray";
+            }
+        }
+    </script>
+
+</body>
+</html>
