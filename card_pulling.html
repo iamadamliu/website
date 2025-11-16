@@ -32,7 +32,7 @@
             color: #333;
         }
 
-        #drawBtn {
+        #drawBtn, #viewHistoryBtn {
             padding: 10px 20px;
             font-size: 18px;
             cursor: pointer;
@@ -41,25 +41,27 @@
             border: none;
             border-radius: 5px;
             margin-top: 20px;
+            margin-right: 10px;
         }
 
         .constellation-container {
             margin-top: 30px;
             display: grid;
-            grid-template-columns: repeat(12, 1fr); /* 1 行 12 列 */
-            gap: 10px; /* 调整间隙，使布局更紧凑 */
+            grid-template-columns: repeat(12, 1fr);
+            gap: 10px;
             justify-items: center;
             padding: 0 10px;
         }
 
         .constellation-section {
-            width: 120px; /* 缩小每个星座的宽度 */
+            width: 120px;
             padding: 8px;
             background-color: #fff;
             border: 1px solid #ccc;
             max-height: 250px;
             overflow-y: auto;
             text-align: left;
+            cursor: pointer;
         }
 
         .constellation-section h3 {
@@ -69,8 +71,44 @@
         }
 
         .history-item {
-            font-size: 12px; /* 调整字体大小 */
+            font-size: 12px;
             margin: 5px 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -82,64 +120,37 @@
 
 <h1>欢迎来到扭蛋模拟器！</h1>
 
-<button id="drawBtn">抽卡</button>
+<div>
+    <button id="drawBtn">抽卡</button>
+    <button id="viewHistoryBtn">全部历史</button>
+</div>
 
 <p class="result" id="result"></p>
 
-<!-- 星座历史记录显示区域 -->
 <div class="constellation-container">
-    <div id="aries" class="constellation-section">
-        <h3>白羊座</h3>
-        <div class="history-list" id="aries-history"></div>
-    </div>
-    <div id="taurus" class="constellation-section">
-        <h3>金牛座</h3>
-        <div class="history-list" id="taurus-history"></div>
-    </div>
-    <div id="gemini" class="constellation-section">
-        <h3>双子座</h3>
-        <div class="history-list" id="gemini-history"></div>
-    </div>
-    <div id="cancer" class="constellation-section">
-        <h3>巨蟹座</h3>
-        <div class="history-list" id="cancer-history"></div>
-    </div>
-    <div id="leo" class="constellation-section">
-        <h3>狮子座</h3>
-        <div class="history-list" id="leo-history"></div>
-    </div>
-    <div id="virgo" class="constellation-section">
-        <h3>处女座</h3>
-        <div class="history-list" id="virgo-history"></div>
-    </div>
-    <div id="libra" class="constellation-section">
-        <h3>天秤座</h3>
-        <div class="history-list" id="libra-history"></div>
-    </div>
-    <div id="scorpio" class="constellation-section">
-        <h3>天蝎座</h3>
-        <div class="history-list" id="scorpio-history"></div>
-    </div>
-    <div id="sagittarius" class="constellation-section">
-        <h3>射手座</h3>
-        <div class="history-list" id="sagittarius-history"></div>
-    </div>
-    <div id="capricorn" class="constellation-section">
-        <h3>摩羯座</h3>
-        <div class="history-list" id="capricorn-history"></div>
-    </div>
-    <div id="aquarius" class="constellation-section">
-        <h3>水瓶座</h3>
-        <div class="history-list" id="aquarius-history"></div>
-    </div>
-    <div id="pisces" class="constellation-section">
-        <h3>双鱼座</h3>
-        <div class="history-list" id="pisces-history"></div>
+    <div id="aries" class="constellation-section"><h3>白羊座</h3></div>
+    <div id="taurus" class="constellation-section"><h3>金牛座</h3></div>
+    <div id="gemini" class="constellation-section"><h3>双子座</h3></div>
+    <div id="cancer" class="constellation-section"><h3>巨蟹座</h3></div>
+    <div id="leo" class="constellation-section"><h3>狮子座</h3></div>
+    <div id="virgo" class="constellation-section"><h3>处女座</h3></div>
+    <div id="libra" class="constellation-section"><h3>天秤座</h3></div>
+    <div id="scorpio" class="constellation-section"><h3>天蝎座</h3></div>
+    <div id="sagittarius" class="constellation-section"><h3>射手座</h3></div>
+    <div id="capricorn" class="constellation-section"><h3>摩羯座</h3></div>
+    <div id="aquarius" class="constellation-section"><h3>水瓶座</h3></div>
+    <div id="pisces" class="constellation-section"><h3>双鱼座</h3></div>
+</div>
+
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>历史抽奖记录</h2>
+        <div id="modal-history-content"></div>
     </div>
 </div>
 
 <script>
-    // 星座名称和ID的映射
     const constellationMap = {
         "白羊座": "aries",
         "金牛座": "taurus",
@@ -155,45 +166,94 @@
         "双鱼座": "pisces"
     };
 
-    const constellations = ["白羊座", "金牛座", "双子座", "巨蟹座", "狮子座", "处女座", "天秤座", "天蝎座", "射手座", "摩羯座", "水瓶座", "双鱼座"];
+    const constellations = Object.keys(constellationMap);
     const genders = ["男", "女"];
 
-    // 随机生成年龄（10到60岁）
     function getRandomAge() {
         return Math.floor(Math.random() * 51) + 10;
     }
 
-    // 随机选择一个性别
     function getRandomGender() {
         return genders[Math.floor(Math.random() * genders.length)];
+    }
+
+    function getCurrentTime() {
+        const now = new Date();
+        now.setHours(now.getHours()); // 设置为东八区时间
+        return now.toLocaleString();
     }
 
     const drawBtn = document.getElementById("drawBtn");
     const resultText = document.getElementById("result");
 
-    // 抽卡按钮点击事件
+    const historyMap = {
+        "aries": [],
+        "taurus": [],
+        "gemini": [],
+        "cancer": [],
+        "leo": [],
+        "virgo": [],
+        "libra": [],
+        "scorpio": [],
+        "sagittarius": [],
+        "capricorn": [],
+        "aquarius": [],
+        "pisces": []
+    };
+
     drawBtn.onclick = function () {
-        // 获取随机结果
+        const randomConstellation = constellations[Math.floor(Math.random() * constellations.length)];
         const randomAge = getRandomAge();
         const randomGender = getRandomGender();
+        const currentTime = getCurrentTime();
 
-        // 生成抽卡结果（简化版）
-        const result = `${randomAge}岁，${randomGender}`;
-
-        // 显示抽卡结果
+        const result = `${randomConstellation}，${randomAge}岁，${randomGender}，抽奖时间：${currentTime}`;
         resultText.innerText = result;
 
-        // 获取对应星座的历史记录区
-        const constellationId = constellationMap[constellations[Math.floor(Math.random() * constellations.length)]];
+        const constellationId = constellationMap[randomConstellation];
+        historyMap[constellationId].push({ result, time: currentTime });
+    };
 
-        // 创建新的历史记录项
-        const historyItem = document.createElement("div");
-        historyItem.classList.add("history-item");
-        historyItem.innerText = result;
+    function sortHistoryByTime(historyList) {
+        return historyList.sort((a, b) => new Date(b.time) - new Date(a.time)); // 倒序排序
+    }
 
-        // 将历史记录项添加到对应星座的历史记录中
-        const historyDiv = document.getElementById(`${constellationId}-history`);
-        historyDiv.appendChild(historyItem);
+    document.querySelectorAll('.constellation-section').forEach(section => {
+        section.onclick = function () {
+            const constellationId = section.id;
+            let historyList = historyMap[constellationId];
+            const modal = document.getElementById("myModal");
+            const modalContent = document.getElementById("modal-history-content");
+
+            if (historyList.length === 0) {
+                modalContent.innerHTML = "<div>暂无记录</div>";
+            } else {
+                historyList = sortHistoryByTime(historyList); // 按时间排序
+                modalContent.innerHTML = historyList.map(item => `<div>${item.result}</div>`).join('');
+            }
+            modal.style.display = "block";
+        };
+    });
+
+    const closeModal = document.getElementsByClassName("close")[0];
+    closeModal.onclick = function () {
+        document.getElementById("myModal").style.display = "none";
+    };
+
+    // 新增“全部历史”按钮功能
+    const viewHistoryBtn = document.getElementById("viewHistoryBtn");
+    viewHistoryBtn.onclick = function () {
+        const modal = document.getElementById("myModal");
+        const modalContent = document.getElementById("modal-history-content");
+
+        const allHistory = Object.values(historyMap).flat();
+        if (allHistory.length === 0) {
+            modalContent.innerHTML = "<div>暂无记录</div>";
+        } else {
+            const sortedHistory = sortHistoryByTime(allHistory); // 按时间排序
+            modalContent.innerHTML = sortedHistory.map(item => `<div>${item.result}</div>`).join('');
+        }
+        modal.style.display = "block";
     };
 </script>
 
