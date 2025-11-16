@@ -6,11 +6,12 @@
     <style>
       body {
         background-color: #f0f0f0;
-        background-image: url('https://aisearch.cdn.bcebos.com/homepage/jump_panel/photo_editing_min_v2/gexingrenxiang.jpg');
+        /* background-image: url('https://aisearch.cdn.bcebos.com/homepage/jump_panel/photo_editing_min_v2/gexingrenxiang.jpg'); */
       }
-      #jump_baidu {
-        display: none;
-      }
+      /*
+      #jump_mindmap { display: none; }
+      #jump_card_pulling { display: none; }
+      */
     </style>
 </head>
 <body>
@@ -31,7 +32,8 @@
   
     <p id="printMessage"></p>
 
-    <button id="jump_baidu" onclick="jump_baidu()"> 百度 </button>
+    <button id="jump_mindmap" onclick="jump_mindmap()"> 在线思维导图 </button>
+    <button id="jump_card_pulling" onclick="jump_card_pulling()"> 抽卡模拟器 </button>
     <script>
         function displayWelcomeMessage(event) {
             event.preventDefault(); // 阻止表单提交，防止页面刷新
@@ -47,21 +49,21 @@
             if (name.trim() == "") {
                 document.getElementById("printMessage").textContent = "请输入你的账号！";
             }
-            else if (name == '啾阔落' && password == "123") {
-                document.getElementById("printMessage").textContent = message_welcome;
-                document.getElementById("jump_baidu").style.display = "inline-block";
-            }
             else if (name == '啾阔落' && password != "123") {
                 document.getElementById("printMessage").textContent = message_wrong_password;
             }
             else if (name != '啾阔落') {
                 document.getElementById("printMessage").textContent = message_wrong_account;
             }
+            else if (name == '啾阔落' && password == "123") {
+                document.getElementById("printMessage").textContent = message_welcome;
+                document.getElementById("jump_mindmap").style.display = "inline-block";
+                document.getElementById("jump_card_pulling").style.display = "inline-block";
+            }
         }
       
-        function jump_baidu() {
-            window.open('https://mm.edrawsoft.cn/app/editor/5c8ngUTgH8DVlY6AW4NxSmAhNP2KJIlL');
-        }
+        function jump_mindmap() { window.open('https://mm.edrawsoft.cn/app/editor/5c8ngUTgH8DVlY6AW4NxSmAhNP2KJIlL'); }
+        function jump_card_pulling() { window.open('https://iamadamliu.github.io/website/card_pulling.html'); }
     </script>
 </p>
 </html>
