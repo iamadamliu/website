@@ -2,29 +2,36 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>抽卡模拟器</title>
+    <title>扭蛋模拟器</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
             text-align: center;
-            padding: 50px;
+            padding: 0;
+            margin: 0;
         }
-        .card {
-            width: 200px;
+
+        .gacha-machine {
+            background-image: url('https://th.bing.com/th/id/R.1187ec003b72ea9a8b855d8c94d3f90e?rik=Tf%2bRadw5r7Hu5w&pid=ImgRaw&r=0');
             height: 300px;
-            margin: 10px;
-            border: 2px solid #ccc;
-            display: inline-block;
-            vertical-align: top;
-            padding: 20px;
-            background-color: white;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            background-size: cover;
+            background-position: center;
         }
+
         .result {
             font-size: 20px;
             margin-top: 20px;
             color: #333;
         }
+
         #drawBtn {
             padding: 10px 20px;
             font-size: 18px;
@@ -33,51 +40,162 @@
             color: white;
             border: none;
             border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .constellation-container {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr); /* 1 行 12 列 */
+            gap: 10px; /* 调整间隙，使布局更紧凑 */
+            justify-items: center;
+            padding: 0 10px;
+        }
+
+        .constellation-section {
+            width: 120px; /* 缩小每个星座的宽度 */
+            padding: 8px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            max-height: 250px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .constellation-section h3 {
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .history-item {
+            font-size: 12px; /* 调整字体大小 */
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
 
-    <h1>欢迎来到抽卡模拟器！</h1>
-    <div id="cards">
-        <div class="card" id="card1">卡片1</div>
-        <div class="card" id="card2">卡片2</div>
-        <div class="card" id="card3">卡片3</div>
+<div class="gacha-machine">
+    <!-- 扭蛋机背景区域 -->
+</div>
+
+<h1>欢迎来到扭蛋模拟器！</h1>
+
+<button id="drawBtn">抽卡</button>
+
+<p class="result" id="result"></p>
+
+<!-- 星座历史记录显示区域 -->
+<div class="constellation-container">
+    <div id="aries" class="constellation-section">
+        <h3>白羊座</h3>
+        <div class="history-list" id="aries-history"></div>
     </div>
+    <div id="taurus" class="constellation-section">
+        <h3>金牛座</h3>
+        <div class="history-list" id="taurus-history"></div>
+    </div>
+    <div id="gemini" class="constellation-section">
+        <h3>双子座</h3>
+        <div class="history-list" id="gemini-history"></div>
+    </div>
+    <div id="cancer" class="constellation-section">
+        <h3>巨蟹座</h3>
+        <div class="history-list" id="cancer-history"></div>
+    </div>
+    <div id="leo" class="constellation-section">
+        <h3>狮子座</h3>
+        <div class="history-list" id="leo-history"></div>
+    </div>
+    <div id="virgo" class="constellation-section">
+        <h3>处女座</h3>
+        <div class="history-list" id="virgo-history"></div>
+    </div>
+    <div id="libra" class="constellation-section">
+        <h3>天秤座</h3>
+        <div class="history-list" id="libra-history"></div>
+    </div>
+    <div id="scorpio" class="constellation-section">
+        <h3>天蝎座</h3>
+        <div class="history-list" id="scorpio-history"></div>
+    </div>
+    <div id="sagittarius" class="constellation-section">
+        <h3>射手座</h3>
+        <div class="history-list" id="sagittarius-history"></div>
+    </div>
+    <div id="capricorn" class="constellation-section">
+        <h3>摩羯座</h3>
+        <div class="history-list" id="capricorn-history"></div>
+    </div>
+    <div id="aquarius" class="constellation-section">
+        <h3>水瓶座</h3>
+        <div class="history-list" id="aquarius-history"></div>
+    </div>
+    <div id="pisces" class="constellation-section">
+        <h3>双鱼座</h3>
+        <div class="history-list" id="pisces-history"></div>
+    </div>
+</div>
 
-    <button id="drawBtn">抽卡</button>
+<script>
+    // 星座名称和ID的映射
+    const constellationMap = {
+        "白羊座": "aries",
+        "金牛座": "taurus",
+        "双子座": "gemini",
+        "巨蟹座": "cancer",
+        "狮子座": "leo",
+        "处女座": "virgo",
+        "天秤座": "libra",
+        "天蝎座": "scorpio",
+        "射手座": "sagittarius",
+        "摩羯座": "capricorn",
+        "水瓶座": "aquarius",
+        "双鱼座": "pisces"
+    };
 
-    <p class="result" id="result"></p>
+    const constellations = ["白羊座", "金牛座", "双子座", "巨蟹座", "狮子座", "处女座", "天秤座", "天蝎座", "射手座", "摩羯座", "水瓶座", "双鱼座"];
+    const genders = ["男", "女"];
 
-    <script>
-        const cards = ["SSR", "SR", "R", "UR", "N"];  // 抽卡的结果
-        const drawBtn = document.getElementById("drawBtn");
-        const resultText = document.getElementById("result");
+    // 随机生成年龄（10到60岁）
+    function getRandomAge() {
+        return Math.floor(Math.random() * 51) + 10;
+    }
 
-        // 抽卡按钮点击事件
-        drawBtn.onclick = function() {
-            let randomCard = cards[Math.floor(Math.random() * cards.length)];
-            document.getElementById("card1").innerText = randomCard;  // 将结果显示在卡片上
+    // 随机选择一个性别
+    function getRandomGender() {
+        return genders[Math.floor(Math.random() * genders.length)];
+    }
 
-            // 根据抽到的卡片类型显示不同的文字
-            if (randomCard === "SSR") {
-                resultText.innerText = "恭喜你，抽到了SSR卡！";
-                resultText.style.color = "gold";
-            } else if (randomCard === "SR") {
-                resultText.innerText = "抽到了SR卡！";
-                resultText.style.color = "silver";
-            } else if (randomCard === "R") {
-                resultText.innerText = "抽到了R卡！";
-                resultText.style.color = "green";
-            } else if (randomCard === "UR") {
-                resultText.innerText = "抽到了UR卡！";
-                resultText.style.color = "purple";
-            } else {
-                resultText.innerText = "抽到了N卡。";
-                resultText.style.color = "gray";
-            }
-        }
-    </script>
+    const drawBtn = document.getElementById("drawBtn");
+    const resultText = document.getElementById("result");
+
+    // 抽卡按钮点击事件
+    drawBtn.onclick = function () {
+        // 获取随机结果
+        const randomAge = getRandomAge();
+        const randomGender = getRandomGender();
+
+        // 生成抽卡结果（简化版）
+        const result = `${randomAge}岁，${randomGender}`;
+
+        // 显示抽卡结果
+        resultText.innerText = result;
+
+        // 获取对应星座的历史记录区
+        const constellationId = constellationMap[constellations[Math.floor(Math.random() * constellations.length)]];
+
+        // 创建新的历史记录项
+        const historyItem = document.createElement("div");
+        historyItem.classList.add("history-item");
+        historyItem.innerText = result;
+
+        // 将历史记录项添加到对应星座的历史记录中
+        const historyDiv = document.getElementById(`${constellationId}-history`);
+        historyDiv.appendChild(historyItem);
+    };
+</script>
 
 </body>
 </html>
