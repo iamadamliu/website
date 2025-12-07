@@ -3,7 +3,7 @@
 $host = 'localhost';
 $user = 'root';
 $password = '';
-$dbname = 'my_database';
+$dbname = 'website';
 
 // 创建连接
 $conn = new mysqli($host, $user, $password, $dbname);
@@ -22,7 +22,7 @@ $sql = "INSERT INTO login_record (create_time) VALUES ('$current_time')";
 // 执行 SQL 查询
 if ($conn->query($sql) === TRUE) {
     // 插入成功
-    echo "新记录插入成功";
+    echo "新记录插入成功", $current_time;
 } else {
     // 插入失败
     echo "Error: " . $sql . "<br>" . $conn->error;
