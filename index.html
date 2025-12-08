@@ -2,72 +2,374 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>我的网页</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>2048 小游戏（修复版）</title>
     <style>
-      body {
-        background-color: #f0f0f0;
-        /* background-image: url('https://aisearch.cdn.bcebos.com/homepage/jump_panel/photo_editing_min_v2/gexingrenxiang.jpg'); */
-      }
-      /*
-      #jump_mindmap { display: none; }
-      #jump_card_pulling { display: none; }
-      */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #faf8ef;
+            font-family: Arial, sans-serif;
+            padding: 10px;
+        }
+        .game-container {
+            margin-top: 20px;
+            position: relative;
+            width: min(90vw, 360px);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 10px;
+            background-color: #bbada0;
+            padding: 10px;
+            border-radius: 6px;
+            position: relative;
+            aspect-ratio: 1/1;
+        }
+        .cell {
+            background-color: #cdc1b4;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(16px, 5vw, 28px);
+            font-weight: bold;
+            color: #776e65;
+            position: absolute;
+            transition: all 0.15s ease;
+            animation: pop 0.2s ease;
+        }
+        .score {
+            margin-bottom: 10px;
+            font-size: clamp(18px, 5vw, 24px);
+            color: #776e65;
+        }
+        .cell-2 { background-color: #eee4da; }
+        .cell-4 { background-color: #ede0c8; }
+        .cell-8 { background-color: #f2b179; color: #f9f6f2; }
+        .cell-16 { background-color: #f59563; color: #f9f6f2; }
+        .cell-32 { background-color: #f67c5f; color: #f9f6f2; }
+        .cell-64 { background-color: #f65e3b; color: #f9f6f2; }
+        .cell-128 { background-color: #edcf72; color: #f9f6f2; }
+        .cell-256 { background-color: #edcc61; color: #f9f6f2; }
+        .cell-512 { background-color: #edc850; color: #f9f6f2; }
+        .cell-1024 { background-color: #edc53f; color: #f9f6f2; }
+        .cell-2048 { background-color: #edc22e; color: #f9f6f2; }
+        
+        @keyframes pop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .merge {
+            animation: merge 0.2s ease;
+        }
+        @keyframes merge {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
-    <h3>欢迎来到可乐的个人网站</h3>
-    <p>请输入账号密码</p>
+    <div class="score">得分: <span id="score">0</span></div>
+    <div class="game-container">
+        <div class="grid" id="grid"></div>
+    </div>
 
-    <form onsubmit="displayWelcomeMessage(event)">
-        <label>账号：</label>
-<!--         <label for="name">账号：</label> -->
-        <input type="text" id="name" name="name">
-        <br>
-        <label for="password">密码：</label>
-        <input type="text" id="password" name="password">
-<!--         <input type="password" id="password" name="password"> -->
-        <br>
-        <input type="submit" value="提交">
-    </form>
-  
-    <p id="printMessage"></p>
-
-    <button id="jump_mindmap" onclick="jump_mindmap()"> 知识库 </button>
-    <button id="jump_card_pulling" onclick="jump_card_pulling()"> 抽卡模拟器 </button>
-    <button id="jump_github" onclick="jump_github()"> github </button>
-    <button id="jump_codepen" onclick="jump_codepen()"> codepen </button>
     <script>
-        function displayWelcomeMessage(event) {
-            event.preventDefault(); // 阻止表单提交，防止页面刷新
+        // 游戏核心变量
+        const gridSize = 4;
+        let grid = [];
+        let score = 0;
+        let mergeCells = [];
+        // 触摸相关变量
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        const minSwipeDistance = 30;
+        // 单元格基础尺寸（提前计算，避免重复获取DOM）
+        let cellBaseSize = 0;
+        let cellGap = 10;
 
-            // 获取输入框的值
-            var name = document.getElementById("name").value;
-            var password = document.getElementById("password").value;
-            var message_welcome = "欢迎你，" + name;
-            var message_wrong_account = "账号错误";
-            var message_wrong_password = "密码错误";
-          
-            // 如果没有输入名字，则给出提示
-            if (name.trim() == "") {
-                document.getElementById("printMessage").textContent = "请输入你的账号！";
+        // 初始化游戏
+        function initGame() {
+            grid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+            score = 0;
+            mergeCells = [];
+            document.getElementById('score').textContent = score;
+            
+            // 初始化单元格尺寸
+            calcCellSize();
+            // 生成两个初始数字（修复：确保生成成功）
+            generateRandomNumber();
+            generateRandomNumber();
+            
+            renderGrid();
+        }
+
+        // 计算单元格尺寸（核心修复：统一尺寸计算逻辑）
+        function calcCellSize() {
+            const gridElement = document.getElementById('grid');
+            const gridRect = gridElement.getBoundingClientRect();
+            // 总间距：5个gap（4列+左右padding）
+            const totalGap = (gridSize + 1) * cellGap;
+            cellBaseSize = (gridRect.width - totalGap) / gridSize;
+        }
+
+        // 生成随机数字（核心修复：确保判断空单元格逻辑正确）
+        function generateRandomNumber() {
+            const emptyCells = [];
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    if (grid[i][j] === 0) {
+                        emptyCells.push({ x: i, y: j });
+                    }
+                }
             }
-            else if (name == '啾阔落' && password != "123") {
-                document.getElementById("printMessage").textContent = message_wrong_password;
-            }
-            else if (name != '啾阔落') {
-                document.getElementById("printMessage").textContent = message_wrong_account;
-            }
-            else if (name == '啾阔落' && password == "123") {
-                document.getElementById("printMessage").textContent = message_welcome;
-                document.getElementById("jump_mindmap").style.display = "inline-block";
-                document.getElementById("jump_card_pulling").style.display = "inline-block";
+
+            if (emptyCells.length === 0) return false; // 无空单元格返回false
+
+            const randomIdx = Math.floor(Math.random() * emptyCells.length);
+            const randomCell = emptyCells[randomIdx];
+            grid[randomCell.x][randomCell.y] = Math.random() < 0.9 ? 2 : 4;
+            return true; // 生成成功返回true
+        }
+
+        // 计算单元格位置（修复：简化位置计算）
+        function getCellPosition(row, col) {
+            const x = col * (cellBaseSize + cellGap) + cellGap;
+            const y = row * (cellBaseSize + cellGap) + cellGap;
+            return { x, y };
+        }
+
+        // 渲染网格（核心修复：确保定位和尺寸正确）
+        function renderGrid() {
+            const gridElement = document.getElementById('grid');
+            gridElement.innerHTML = '';
+
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const value = grid[i][j];
+                    if (value === 0) continue;
+
+                    const cell = document.createElement('div');
+                    const pos = getCellPosition(i, j);
+                    
+                    cell.className = `cell cell-${value}`;
+                    cell.textContent = value;
+                    // 修复：统一设置尺寸和定位
+                    cell.style.left = `${pos.x}px`;
+                    cell.style.top = `${pos.y}px`;
+                    cell.style.width = `${cellBaseSize}px`;
+                    cell.style.height = `${cellBaseSize}px`;
+
+                    if (mergeCells.some(c => c.x === i && c.y === j)) {
+                        cell.classList.add('merge');
+                    }
+
+                    gridElement.appendChild(cell);
+                }
             }
         }
-      
-        function jump_mindmap() { window.open('https://www.yuque.com/kele-myua8/nze4h3/qcm0epga29okuk6q/edit'); }
-        function jump_card_pulling() { window.open('https://iamadamliu.github.io/website/card_pulling.html'); }
-        function jump_github() { window.open('https://github.com/iamadamliu/website/blob/main/index.html'); }
-        function jump_codepen() { window.open('https://codepen.io/iamadamliu/pen/jEWQWXy?editors=1100'); }
+
+        // 处理单行向左移动（核心修复：重构移动逻辑）
+        function processRowLeft(row) {
+            // 步骤1：移除空值
+            let newRow = row.filter(num => num !== 0);
+            // 步骤2：合并相同值
+            for (let j = 0; j < newRow.length - 1; j++) {
+                if (newRow[j] === newRow[j + 1]) {
+                    newRow[j] *= 2;
+                    score += newRow[j];
+                    newRow.splice(j + 1, 1);
+                    // 记录合并位置（计算最终列数）
+                    mergeCells.push({ 
+                        x: mergeCells.length, // 临时行号，moveLeft中替换
+                        y: j 
+                    });
+                }
+            }
+            // 步骤3：补零
+            while (newRow.length < gridSize) {
+                newRow.push(0);
+            }
+            // 步骤4：判断是否移动
+            const isMoved = JSON.stringify(row) !== JSON.stringify(newRow);
+            return { newRow, isMoved };
+        }
+
+        // 向左移动（核心修复：正确判断是否移动）
+        function moveLeft() {
+            let isAnyMoved = false;
+            mergeCells = [];
+
+            for (let i = 0; i < gridSize; i++) {
+                const { newRow, isMoved } = processRowLeft(grid[i]);
+                if (isMoved) {
+                    isAnyMoved = true;
+                    grid[i] = newRow;
+                    // 修正合并单元格的行号
+                    mergeCells.forEach(cell => {
+                        if (cell.x === mergeCells.length - 1) {
+                            cell.x = i;
+                        }
+                    });
+                }
+            }
+
+            // 只有移动了才生成新数字
+            if (isAnyMoved) {
+                generateRandomNumber();
+                document.getElementById('score').textContent = score;
+                checkGameOver();
+            }
+            return isAnyMoved;
+        }
+
+        // 旋转网格（逻辑不变）
+        function rotateGrid() {
+            const newGrid = [];
+            for (let i = 0; i < gridSize; i++) {
+                newGrid[i] = [];
+                for (let j = 0; j < gridSize; j++) {
+                    newGrid[i][j] = grid[gridSize - 1 - j][i];
+                }
+            }
+            grid = newGrid;
+        }
+
+        // 处理不同方向移动（逻辑不变）
+        function move(direction) {
+            let moved = false;
+            switch (direction) {
+                case 'left':
+                    moved = moveLeft();
+                    break;
+                case 'up':
+                    rotateGrid();
+                    rotateGrid();
+                    rotateGrid();
+                    moved = moveLeft();
+                    rotateGrid();
+                    break;
+                case 'right':
+                    rotateGrid();
+                    rotateGrid();
+                    moved = moveLeft();
+                    rotateGrid();
+                    rotateGrid();
+                    break;
+                case 'down':
+                    rotateGrid();
+                    moved = moveLeft();
+                    rotateGrid();
+                    rotateGrid();
+                    rotateGrid();
+                    break;
+            }
+            if (moved) renderGrid();
+        }
+
+        // 检查游戏结束（逻辑不变）
+        function checkGameOver() {
+            // 检查空单元格
+            let hasEmpty = false;
+            for (let i = 0; i < gridSize; i++) {
+                if (grid[i].includes(0)) {
+                    hasEmpty = true;
+                    break;
+                }
+            }
+            if (hasEmpty) return;
+
+            // 检查相邻相同
+            let hasMergeable = false;
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const curr = grid[i][j];
+                    // 右相邻
+                    if (j < gridSize - 1 && curr === grid[i][j + 1]) {
+                        hasMergeable = true;
+                        break;
+                    }
+                    // 下相邻
+                    if (i < gridSize - 1 && curr === grid[i + 1][j]) {
+                        hasMergeable = true;
+                        break;
+                    }
+                }
+                if (hasMergeable) break;
+            }
+
+            if (!hasMergeable) {
+                alert(`游戏结束！最终得分: ${score}`);
+                initGame();
+            }
+        }
+
+        // 处理滑动（修复：避免重复触发）
+        function handleSwipe() {
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (Math.abs(diffX) > minSwipeDistance) {
+                    move(diffX > 0 ? 'right' : 'left');
+                }
+            } else {
+                if (Math.abs(diffY) > minSwipeDistance) {
+                    move(diffY > 0 ? 'down' : 'up');
+                }
+            }
+            // 重置触摸坐标
+            touchStartX = touchEndX = touchStartY = touchEndY = 0;
+        }
+
+        // 键盘监听（逻辑不变）
+        document.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
+            switch (e.key) {
+                case 'ArrowLeft': move('left'); break;
+                case 'ArrowUp': move('up'); break;
+                case 'ArrowRight': move('right'); break;
+                case 'ArrowDown': move('down'); break;
+            }
+        });
+
+        // 触摸监听（修复：确保阻止默认行为）
+        const gridElement = document.getElementById('grid');
+        gridElement.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: false });
+
+        gridElement.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchEndX = e.changedTouches[0].clientX;
+            touchEndY = e.changedTouches[0].clientY;
+            handleSwipe();
+        }, { passive: false });
+
+        // 窗口大小变化（修复：重新计算尺寸）
+        window.addEventListener('resize', () => {
+            calcCellSize();
+            renderGrid();
+        });
+
+        // 初始化游戏
+        initGame();
     </script>
-</p>
+</body>
 </html>
